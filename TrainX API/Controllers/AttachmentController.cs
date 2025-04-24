@@ -80,36 +80,21 @@ namespace TrainX_API.Controllers
             return NotFound("File not found.");
         }
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
+        public async Task<string> UploadImageAndGetURL(IFormFile file)
         {
+            string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "attachments");
             if (file == null || file.Length == 0)
             {
-                return BadRequest("No file uploaded.");
+                throw new Exception("Please Enter Valid File");
             }
-
-            // Define the folder to store files (Attachments)
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Attachments");
-
-            // Ensure the directory exists
-            if (!Directory.Exists(folderPath))
+            string newFileURL = DateTime.Now.ToString() + "" + file.FileName;
+            string newFileURL2 = Guid.NewGuid().ToString() + "" + file.FileName;
+            using (var inputFile = new FileStream(Path.Combine(uploadFolder, newFileURL2), FileMode.Create))
             {
-                Directory.CreateDirectory(folderPath);
+                await file.CopyToAsync(inputFile);
             }
-
-            // Create the path to store the file
-            var filePath = Path.Combine(folderPath, file.FileName);
-
-            // Save the uploaded file
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Return the file URL
-            var fileUrl = $"{Request.Scheme}://{Request.Host}/attachments/{file.FileName}";
-            return Ok(new { filePath = fileUrl });
+            return "/attachments" + newFileURL2;
         }
-
         [HttpDelete("delete/{filename}")]
         public IActionResult DeleteFile(string filename)
         {

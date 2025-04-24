@@ -12,9 +12,6 @@ builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "TrainX API", Version = "v1" });
-
-    // Add support for file upload operations
-    c.OperationFilter<SwaggerFileOperationFilter>();
 });
 builder.Services.Configure<FormOptions>(options =>
 {
@@ -24,12 +21,15 @@ builder.Services.Configure<FormOptions>(options =>
 builder.Services.AddSignalR();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+//app.UseSwaggerUI(c =>
+//{
+//    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Market Analysis and Monitoring API");
+//    c.RoutePrefix = string.Empty;
+//});
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(

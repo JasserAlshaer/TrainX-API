@@ -110,29 +110,29 @@ namespace TrainX_API.Helpers
         Audio,
         Video
     }
-    public class SwaggerFileOperationFilter : IOperationFilter
+    public class FileUploadOperationFilter : IOperationFilter
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            var fileParameters = context.MethodInfo
-                .GetParameters()
-                .Where(p => p.ParameterType == typeof(IFormFile));
+            var fileParameters = context.ApiDescription.ParameterDescriptions
+                .Where(p => p.ModelMetadata?.ContainerType == typeof(IFormFile))
+                .ToList();
 
-            foreach (var parameter in fileParameters)
+            if (!fileParameters.Any())
+                return;
+
+            operation.RequestBody = new OpenApiRequestBody
             {
-                operation.Parameters.Remove(operation.Parameters.FirstOrDefault(p => p.Name == parameter.Name));
-                operation.RequestBody = new OpenApiRequestBody
-                {
-                    Content =
+                Content = new Dictionary<string, OpenApiMediaType>
                 {
                     ["multipart/form-data"] = new OpenApiMediaType
                     {
                         Schema = new OpenApiSchema
                         {
                             Type = "object",
-                            Properties =
+                            Properties = new Dictionary<string, OpenApiSchema>
                             {
-                                [parameter.Name] = new OpenApiSchema
+                                ["file"] = new OpenApiSchema
                                 {
                                     Type = "string",
                                     Format = "binary"
@@ -141,8 +141,7 @@ namespace TrainX_API.Helpers
                         }
                     }
                 }
-                };
-            }
+            };
         }
     }
 }
